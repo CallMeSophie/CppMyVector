@@ -1,3 +1,4 @@
+// Vibe-sloped code
 // Build: g++ -std=c++17 -Wall -Wextra -fsanitize=address,undefined test_vector.cpp -o test && ./test
 #include "vector.hpp"
 
@@ -6,6 +7,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <random>
+
+#define RUN_TEST(t) do { t(); std::cout << "ok  " #t "\n"; } while (0)
 
 // Tracks live instances to catch leaks / double destruction.
 struct Counted {
@@ -29,8 +33,6 @@ struct ThrowingMove {
 int ThrowingMove::copies = 0;
 int ThrowingMove::moves  = 0;
 
-#define RUN(t) do { t(); std::cout << "ok  " #t "\n"; } while (0)
-
 void test_default() {
     MyVector<int> v;
     assert(v.size() == 0 && v.capacity() == 0 && v.empty());
@@ -40,9 +42,9 @@ void test_ctors() {
     MyVector<int> a(3);
     assert(a.size() == 3 && a[0] == 0);
     MyVector<int> b(4, 7);
-    assert(b.size() == 4 && b[3] == 7);
+    assert(b.size() == 4 && b[3] == 7 && b[0] == 7);
     MyVector<std::string> c{"a", "b", "c"};
-    assert(c.size() == 3 && c[2] == "c");
+    assert(c.size() == 3 && c[0] == "a" && c[2] == "c");
 }
 
 void test_push_and_growth() {
@@ -190,8 +192,9 @@ void test_iteration_and_swap() {
 void test_random_vs_std() {
     MyVector<int> mine;
     std::vector<int> ref;
-    unsigned s = 12345;
-    auto rnd = [&] { s = s * 1103515245u + 12345u; return (s >> 16) & 0x7fff; };
+    unsigned seed = 12345;
+    std::mt19937 rng(seed);
+    auto rnd = [&] { return rng(); };
     for (int i = 0; i < 20000; ++i) {
         switch (rnd() % 4) {
             case 0: case 1: { int x = rnd(); mine.push_back(x); ref.push_back(x); break; }
@@ -208,21 +211,21 @@ void test_random_vs_std() {
 }
 
 int main() {
-    RUN(test_default);
-    RUN(test_ctors);
-    RUN(test_push_and_growth);
-    RUN(test_reserve);
-    RUN(test_shrink_clear);
-    RUN(test_at);
-    RUN(test_front_back_pop);
-    RUN(test_copy_move);
-    RUN(test_move_only);
-    RUN(test_lifetimes);
-    RUN(test_insert_erase);
-    RUN(test_resize);
-    RUN(test_aliasing_push_back);
-    RUN(test_move_if_noexcept);
-    RUN(test_iteration_and_swap);
-    RUN(test_random_vs_std);
+    RUN_TEST(test_default);
+    RUN_TEST(test_ctors);
+    RUN_TEST(test_push_and_growth);
+    RUN_TEST(test_reserve);
+    RUN_TEST(test_shrink_clear);
+    RUN_TEST(test_at);
+    RUN_TEST(test_front_back_pop);
+    RUN_TEST(test_copy_move);
+    RUN_TEST(test_move_only);
+    RUN_TEST(test_lifetimes);
+    RUN_TEST(test_insert_erase);
+    RUN_TEST(test_resize);
+    RUN_TEST(test_aliasing_push_back);
+    RUN_TEST(test_move_if_noexcept);
+    RUN_TEST(test_iteration_and_swap);
+    RUN_TEST(test_random_vs_std);
     std::cout << "all passed\n";
 }

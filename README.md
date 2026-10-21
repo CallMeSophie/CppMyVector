@@ -15,12 +15,12 @@ justfile
 
 ## Build and run
 
-Requirements: a C++17 compiler (g++ or clang++), `make`.
+Requirements: g++, `make`.
 
 ```bash
 make            # build
 ./test          # run tests
-make clean      # remove build artifacts
+make clean
 ```
 `just` can also be used for easier running.
 
